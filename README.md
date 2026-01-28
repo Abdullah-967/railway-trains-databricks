@@ -12,6 +12,8 @@ A comprehensive data engineering project analyzing passenger train performance a
 
 We use a multi-layered approach to transform raw data into insights:
 
+<img width="1332" height="353" alt="Screenshot 2026-01-28 010513" src="https://github.com/user-attachments/assets/e9e488a0-a667-4d1d-af23-f7e56c4de3e8" />
+
 1.  **Bronze (Raw)**: Raw CSV ingestion with schema evolution and basic sanitization.
 2.  **Silver (Cleaned)**: Data typing, cleaning, and enrichment. Includes derived on-time flags (threshold <= 5 min) and performance classification.
 3.  **Gold (Business)**: Optimized dimensional models (`fact_stops`, `dim_station`) and daily performance aggregations for reporting.
