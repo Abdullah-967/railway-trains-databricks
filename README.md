@@ -1,4 +1,4 @@
-# 🚄 NS Trains: Databricks Performance Pipeline
+# 🚄 Railway Trains: Databricks Performance Pipeline
 
 A comprehensive data engineering project analyzing passenger train performance across the Dutch railway network. This pipeline processes historical stop and service data to generate actionable insights into delays, cancellations, and platform changes.
 
