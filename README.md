@@ -12,7 +12,7 @@ A comprehensive data engineering project analyzing passenger train performance a
 
 We use a multi-layered approach to transform raw data into insights:
 
-<img width="1332" height="353" alt="Screenshot 2026-01-28 010513" src="https://github.com/user-attachments/assets/e9e488a0-a667-4d1d-af23-f7e56c4de3e8" />
+<img width="1253" height="365" alt="Screenshot 2026-02-01 234816" src="https://github.com/user-attachments/assets/1e8c92c9-b0c4-4741-906e-ca482c4e50d1" />
 
 
 1.  **Bronze (Raw)**: Raw CSV ingestion with schema evolution and basic sanitization.
