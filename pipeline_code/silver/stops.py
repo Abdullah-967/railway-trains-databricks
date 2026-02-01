@@ -7,9 +7,17 @@ def get_day_name(date_col):
     return F.date_format(date_col, "EEEE")
 
 
-@dp.view(
-    name="services_silver_staging",
-    comment="Transformed services data ready for CDC upsert"
+@dp.materialized_view(
+    name="services.silver.services",
+    comment="Cleaned and validated services with typed delays, boolean flags, and derived on-time metrics.",
+    table_properties={
+        "quality": "silver",
+        "layer": "silver",
+        "delta.enableChangeDataFeed": "true",
+        "delta.autoOptimize.optimizeWrite": "true",
+        "delta.autoOptimize.autoCompact": "true",
+    },
+    partition_cols=["service_year", "service_month"],
 )
 @dp.expect("valid_actual_platform", "stop_actual_platform IS NOT NULL")
 @dp.expect("valid_arrival_time", "stop_arrival_time IS NOT NULL")
@@ -27,7 +35,7 @@ def services_silver():
 
     Grain: One row per stop per service
     """
-    df_bronze = spark.readStream.table("services.bronze.services")
+    df_bronze = spark.read.table("services.bronze.services")
 
     # Drop rows with nulls in required columns
     df_silver = df_bronze.dropna(
@@ -69,9 +77,7 @@ def services_silver():
         "service_day_name", get_day_name(F.col("service_date"))
     )
 
-    # -----------------------------------------
     # Type casting: delays to INT
-    # -----------------------------------------
     df_silver = (
         df_silver
         .withColumn("stop_arrival_delay", F.col("stop_arrival_delay").cast("int"))
@@ -79,9 +85,7 @@ def services_silver():
         .withColumn("service_maximum_delay", F.col("service_maximum_delay").cast("int"))
     )
 
-    # -----------------------------------------
     # Boolean casting for cancellation/change flags
-    # -----------------------------------------
     df_silver = (
         df_silver
         .withColumn(
@@ -106,9 +110,7 @@ def services_silver():
         )
     )
 
-    # -----------------------------------------
     # Derived columns for analytics
-    # -----------------------------------------
     df_silver = (
         df_silver
         .withColumn(
@@ -125,9 +127,7 @@ def services_silver():
         )
     )
 
-    # -----------------------------------------
     # Partition columns
-    # -----------------------------------------
     df_silver = (
         df_silver
         .withColumn("service_year", F.year(F.col("service_date")))
@@ -135,28 +135,3 @@ def services_silver():
     )
 
     return df_silver
-
-
-# Create the streaming target table
-dp.create_streaming_table(
-    name="services.silver.services",
-    comment="Cleaned and validated services with CDC upsert capability. Includes typed delays, boolean flags, and derived on-time metrics.",
-    table_properties={
-        "quality": "silver",
-        "layer": "silver",
-        "delta.enableChangeDataFeed": "true",
-        "delta.autoOptimize.optimizeWrite": "true",
-        "delta.autoOptimize.autoCompact": "true",
-    },
-    partition_cols=["service_year", "service_month"],
-)
-
-# Apply CDC flow (SCD Type 1)
-dp.create_auto_cdc_flow(
-    target="services.silver.services",
-    source="services_silver_staging",
-    keys=["service_id"],
-    sequence_by=F.col("silver_processed_timestamp"),
-    stored_as_scd_type=1,
-    except_column_list=[],
-)
